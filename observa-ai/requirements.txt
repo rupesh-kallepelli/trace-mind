@@ -1,0 +1,23 @@
+fastapi==0.111.0
+uvicorn==0.30.0
+
+# OpenSearch
+opensearch-py==2.5.0
+
+# HTTP client
+requests==2.32.3
+
+# LangGraph / LangChain
+langgraph==0.0.58
+langchain-core==0.2.19
+
+# Vertex AI (Gemini)
+google-cloud-aiplatform==1.66.0
+google-generativeai==0.7.2
+
+# Config management
+pydantic-settings==2.3.3
+
+openai
+
+numpy==1.26.4
