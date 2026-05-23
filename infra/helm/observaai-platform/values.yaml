@@ -28,10 +28,10 @@ minio:
 
 
 jira:
-  enabled: false
+  enabled: true
 
 redis:
-  enabled: false
+  enabled: true
 
 minio:
-  enabled: false
+  enabled: true

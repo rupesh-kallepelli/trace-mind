@@ -22,7 +22,9 @@ jobs:
 
       - name: Login OpenShift
         run: |
-          oc login ${{ secrets.OPENSHIFT_API }}             --token=${{ secrets.OPENSHIFT_TOKEN }}             --insecure-skip-tls-verify=true
+          oc login ${{ secrets.OPENSHIFT_API }} \
+            --token=${{ secrets.OPENSHIFT_TOKEN }} \
+            --insecure-skip-tls-verify=true
 
       - name: Create Namespace
         run: |
@@ -32,29 +34,95 @@ jobs:
         run: |
           echo '${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}' > key.json
 
-          oc create secret generic gcp-service-account             --from-file=key.json             -n ${{ secrets.OPENSHIFT_NAMESPACE }}             --dry-run=client -o yaml | oc apply -f -
+          oc create secret generic gcp-service-account \
+            --from-file=key.json \
+            -n ${{ secrets.OPENSHIFT_NAMESPACE }} \
+            --dry-run=client -o yaml | oc apply -f -
 
-      - name: Deploy Platform
-        run: |
-          helm upgrade --install observaai-platform             infra/helm/observaai-platform             --namespace=${{ secrets.OPENSHIFT_NAMESPACE }}
+      ##################################################################
+      # Deploy Infra Templates First
+      ##################################################################
 
-      - name: Wait For Core Infra
+      - name: Deploy Helm Base Resources
         run: |
-          oc rollout status deployment/postgres -n ${{ secrets.OPENSHIFT_NAMESPACE }}
-          oc rollout status deployment/opensearch -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+          helm upgrade --install observaai-platform \
+            infra/helm/observaai-platform \
+            --namespace=${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      ##################################################################
+      # Build Patched OpenSearch Image
+      ##################################################################
+
+      - name: Start OpenSearch Build
+        run: |
+          oc start-build opensearch-patched \
+            --follow \
+            -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      ##################################################################
+      # Restart OpenSearch After Build
+      ##################################################################
+
+      - name: Restart OpenSearch
+        run: |
+          oc rollout restart deployment/opensearch \
+            -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      ##################################################################
+      # Wait For Infra
+      ##################################################################
+
+      - name: Wait For PostgreSQL
+        run: |
+          oc rollout status deployment/postgres \
+            -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      - name: Wait For OpenSearch
+        run: |
+          oc rollout status deployment/opensearch \
+            -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      ##################################################################
+      # Backend
+      ##################################################################
 
       - name: Wait For Backend
         run: |
-          oc rollout status deployment/observaai-backend -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+          oc rollout status deployment/observaai-backend \
+            -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      ##################################################################
+      # Frontend
+      ##################################################################
 
       - name: Wait For Frontend
         run: |
-          oc rollout status deployment/observaai-frontend -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+          oc rollout status deployment/observaai-frontend \
+            -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      ##################################################################
+      # Optional Services
+      ##################################################################
 
       - name: Optional Jira Validation
         run: |
-          oc get deployment jira -n ${{ secrets.OPENSHIFT_NAMESPACE }} || true
+          oc get deployment jira \
+            -n ${{ secrets.OPENSHIFT_NAMESPACE }} || true
+
+      ##################################################################
+      # Validate Routes
+      ##################################################################
 
       - name: Validate Routes
         run: |
-          oc get routes -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+          oc get routes \
+            -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      ##################################################################
+      # Validate Pods
+      ##################################################################
+
+      - name: Validate Pods
+        run: |
+          oc get pods \
+            -n ${{ secrets.OPENSHIFT_NAMESPACE }}

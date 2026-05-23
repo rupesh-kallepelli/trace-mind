@@ -1,3 +1,33 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: opensearch-patched
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: opensearch-patched
+spec:
+  source:
+    dockerfile: |
+      FROM opensearchproject/opensearch:latest
+
+      USER root
+
+      RUN chmod -R 775 /usr/share/opensearch \
+          && chmod +x /usr/share/opensearch/opensearch-docker-entrypoint.sh \
+          && chgrp -R 0 /usr/share/opensearch
+
+      USER 1001
+
+  strategy:
+    type: Docker
+
+  output:
+    to:
+      kind: ImageStreamTag
+      name: opensearch-patched:latest
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -15,27 +45,58 @@ metadata:
   name: opensearch
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: opensearch
+
   template:
     metadata:
       labels:
         app: opensearch
+
     spec:
+      securityContext:
+        fsGroup: 1001
+
       containers:
       - name: opensearch
-        image: {{ .Values.opensearch.image }}
+
+        image: image-registry.openshift-image-registry.svc:5000/{{ .Release.Namespace }}/opensearch-patched:latest
+
+        imagePullPolicy: Always
+
         env:
         - name: discovery.type
           value: single-node
+
         - name: OPENSEARCH_JAVA_OPTS
           value: {{ .Values.opensearch.heap | quote }}
+
         ports:
         - containerPort: 9200
+
         volumeMounts:
         - mountPath: /usr/share/opensearch/data
           name: opensearch-storage
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9200
+          initialDelaySeconds: 60
+          periodSeconds: 10
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9200
+          initialDelaySeconds: 120
+          periodSeconds: 20
+
+        securityContext:
+          allowPrivilegeEscalation: false
+
         resources:
           limits:
             memory: "1Gi"
@@ -43,6 +104,7 @@ spec:
           requests:
             memory: "512Mi"
             cpu: "250m"
+
       volumes:
       - name: opensearch-storage
         persistentVolumeClaim:
@@ -55,6 +117,16 @@ metadata:
 spec:
   selector:
     app: opensearch
+
   ports:
   - port: 9200
     targetPort: 9200
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: opensearch
+spec:
+  to:
+    kind: Service
+    name: opensearch
