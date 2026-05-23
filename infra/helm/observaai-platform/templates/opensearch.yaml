@@ -69,7 +69,12 @@ spec:
 
         - name: OPENSEARCH_JAVA_OPTS
           value: {{ .Values.opensearch.heap | quote }}
-
+          
+        - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: observaai-secrets
+              key: OPENSEARCH_ADMIN_PASSWORD
         ports:
         - containerPort: 9200
 
