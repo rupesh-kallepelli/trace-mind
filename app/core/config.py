@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     JIRA_URL: str
     JIRA_USERNAME: str
     JIRA_API_TOKEN: str
+    JIRA_ENABLED: bool = False
 
     class Config:
         env_file = ".env"
