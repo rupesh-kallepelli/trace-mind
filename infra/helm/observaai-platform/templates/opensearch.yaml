@@ -56,9 +56,6 @@ spec:
         app: opensearch
 
     spec:
-      securityContext:
-        fsGroup: 1001
-
       containers:
       - name: opensearch
 
