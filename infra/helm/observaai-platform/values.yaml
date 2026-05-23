@@ -18,20 +18,13 @@ opensearch:
 jira:
   image: docker.io/atlassian/jira-software:9.12
   storage: 5Gi
+  enabled: true
 
 redis:
   image: redis:7-alpine
+  enabled: true
 
 minio:
   image: quay.io/minio/minio
   storage: 2Gi
-
-
-jira:
-  enabled: true
-
-redis:
-  enabled: true
-
-minio:
   enabled: true
