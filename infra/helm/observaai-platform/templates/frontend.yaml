@@ -52,3 +52,5 @@ spec:
   to:
     kind: Service
     name: observaai-frontend
+  tls:
+    termination: edge

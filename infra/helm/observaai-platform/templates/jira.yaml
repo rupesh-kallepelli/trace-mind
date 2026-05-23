@@ -73,4 +73,6 @@ spec:
   to:
     kind: Service
     name: jira
+  tls:
+    termination: edge
 {{- end }}

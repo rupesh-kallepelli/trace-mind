@@ -64,17 +64,24 @@ spec:
         imagePullPolicy: Always
 
         env:
-        - name: discovery.type
-          value: single-node
+          - name: discovery.type
+            value: single-node
 
-        - name: OPENSEARCH_JAVA_OPTS
-          value: {{ .Values.opensearch.heap | quote }}
-          
-        - name: OPENSEARCH_INITIAL_ADMIN_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: observaai-secrets
-              key: OPENSEARCH_ADMIN_PASSWORD
+          - name: OPENSEARCH_JAVA_OPTS
+            value: {{ .Values.opensearch.heap | quote }}
+
+          ##################################################################
+          # DISABLE SECURITY FOR HACKATHON / INTERNAL CLUSTER
+          ##################################################################
+
+          - name: DISABLE_SECURITY_PLUGIN
+            value: "true"
+
+          - name: DISABLE_INSTALL_DEMO_CONFIG
+            value: "true"
+
+          - name: bootstrap.memory_lock
+            value: "false"
         ports:
         - containerPort: 9200
 
@@ -132,3 +139,5 @@ spec:
   to:
     kind: Service
     name: opensearch
+  tls:
+    termination: edge

@@ -68,4 +68,6 @@ spec:
   to:
     kind: Service
     name: minio
+  tls:
+    termination: edge
 {{- end }}
