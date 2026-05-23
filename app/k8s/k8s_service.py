@@ -1,15 +1,28 @@
 from kubernetes import client, config
+from kubernetes.config.config_exception import ConfigException
 
-config.load_kube_config()
-
-v1 = client.CoreV1Api()
 
 class KubernetesService:
 
-    @staticmethod
-    def cluster_analysis():
+    def __init__(self):
 
-        pods = v1.list_pod_for_all_namespaces()
+        try:
+
+            config.load_incluster_config()
+
+            print("Using in-cluster config")
+
+        except ConfigException:
+
+            config.load_kube_config()
+
+            print("Using local kubeconfig")
+
+        self.v1 = client.CoreV1Api()
+
+    def cluster_analysis(self):
+
+        pods = self.v1.list_pod_for_all_namespaces()
 
         results = []
 

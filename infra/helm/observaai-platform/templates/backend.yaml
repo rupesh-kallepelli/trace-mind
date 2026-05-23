@@ -56,21 +56,6 @@ spec:
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /app/keys/key.json
-        - name: GOOGLE_CLOUD_PROJECT_ID
-          valueFrom:
-            secretKeyRef:
-              name: gcp-service-account
-              key: GOOGLE_CLOUD_PROJECT_ID
-        - name: JIRA_URL
-          valueFrom:
-            secretKeyRef:
-              name: gcp-service-account
-              key: JIRA_URL
-        - name: JIRA_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: gcp-service-account
-              key: JIRA_USERNAME
         volumeMounts:
         - name: gcp-key
           mountPath: /app/keys
