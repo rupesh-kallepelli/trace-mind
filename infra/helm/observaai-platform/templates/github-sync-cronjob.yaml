@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: github-sync
+spec:
+  schedule: "0 */6 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: github-sync
+            image: image-registry.openshift-image-registry.svc:5000/observaai/observaai-backend:latest
+            command: ["python","scripts/bootstrap_memory.py"]
+            envFrom:
+            - configMapRef:
+                name: observaai-config
+            - secretRef:
+                name: observaai-secrets

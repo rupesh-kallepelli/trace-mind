@@ -1,0 +1,46 @@
+name: Backend CI/CD
+
+on:
+  push:
+    paths:
+      - 'app/**'
+      - 'requirements.txt'
+      - 'Dockerfile'
+
+jobs:
+  backend-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Validate Backend
+        run: |
+          python -m compileall app
+
+      - name: Install OpenShift CLI
+        run: |
+          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
+          tar -xvf oc.tar.gz
+          sudo mv oc /usr/local/bin/
+
+      - name: Login OpenShift
+        run: |
+          oc login ${{ secrets.OPENSHIFT_API }}             --token=${{ secrets.OPENSHIFT_TOKEN }}             --insecure-skip-tls-verify=true
+
+      - name: Trigger Backend Build
+        run: |
+          oc start-build observaai-backend             --from-dir=.             --follow             -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+
+      - name: Rollout Backend
+        run: |
+          oc rollout restart deployment/observaai-backend             -n ${{ secrets.OPENSHIFT_NAMESPACE }}

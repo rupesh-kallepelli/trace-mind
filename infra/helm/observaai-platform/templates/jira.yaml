@@ -1,0 +1,76 @@
+{{- if .Values.jira.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jira-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.jira.storage }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jira
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jira
+  template:
+    metadata:
+      labels:
+        app: jira
+    spec:
+      containers:
+      - name: jira
+        image: {{ .Values.jira.image }}
+        env:
+        - name: ATL_JDBC_URL
+          value: jdbc:postgresql://postgres:5432/observaai
+        - name: ATL_JDBC_USER
+          value: postgres
+        - name: ATL_JDBC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: observaai-secrets
+              key: POSTGRES_PASSWORD
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /var/atlassian/application-data/jira
+          name: jira-storage
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "1"
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: jira-storage
+        persistentVolumeClaim:
+          claimName: jira-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jira
+spec:
+  selector:
+    app: jira
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: jira
+spec:
+  to:
+    kind: Service
+    name: jira
+{{- end }}

@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observaai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: observaai
+  template:
+    metadata:
+      labels:
+        app: observaai
+    spec:
+      containers:
+      - name: observaai
+        image: observaai:latest
+        ports:
+        - containerPort: 8000

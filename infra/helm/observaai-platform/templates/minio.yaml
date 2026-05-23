@@ -1,0 +1,71 @@
+{{- if .Values.minio.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.minio.storage }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - name: minio
+        image: {{ .Values.minio.image }}
+        args:
+          - server
+          - /data
+        env:
+        - name: MINIO_ROOT_USER
+          value: admin
+        - name: MINIO_ROOT_PASSWORD
+          value: password123
+        ports:
+        - containerPort: 9000
+        volumeMounts:
+        - mountPath: /data
+          name: minio-storage
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+      volumes:
+      - name: minio-storage
+        persistentVolumeClaim:
+          claimName: minio-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+spec:
+  selector:
+    app: minio
+  ports:
+  - port: 9000
+    targetPort: 9000
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: minio
+spec:
+  to:
+    kind: Service
+    name: minio
+{{- end }}

@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observaai-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: observaai-frontend
+  template:
+    metadata:
+      labels:
+        app: observaai-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: image-registry.openshift-image-registry.svc:5000/observaai/observaai-frontend:latest
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: observaai-frontend
+spec:
+  selector:
+    app: observaai-frontend
+  ports:
+  - port: 3000
+    targetPort: 3000
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: observaai-frontend
+spec:
+  to:
+    kind: Service
+    name: observaai-frontend

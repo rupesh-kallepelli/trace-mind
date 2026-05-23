@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observaai-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: observaai-backend
+  template:
+    metadata:
+      labels:
+        app: observaai-backend
+    spec:
+      serviceAccountName: observaai-sa
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox
+        command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 5; done']
+      - name: wait-for-opensearch
+        image: busybox
+        command: ['sh', '-c', 'until nc -z opensearch 9200; do echo waiting for opensearch; sleep 5; done']
+      containers:
+      - name: backend
+        image: image-registry.openshift-image-registry.svc:5000/observaai/observaai-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: observaai-config
+        - secretRef:
+            name: observaai-secrets
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /app/keys/key.json
+        volumeMounts:
+        - name: gcp-key
+          mountPath: /app/keys
+          readOnly: true
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 20
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 40
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+      volumes:
+      - name: gcp-key
+        secret:
+          secretName: gcp-service-account
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: observaai-backend
+spec:
+  selector:
+    app: observaai-backend
+  ports:
+  - port: 8000
+    targetPort: 8000
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: observaai-backend
+spec:
+  to:
+    kind: Service
+    name: observaai-backend
