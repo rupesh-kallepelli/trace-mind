@@ -22,7 +22,7 @@ spec:
         command: ['sh', '-c', 'until nc -z opensearch 9200; do echo waiting for opensearch; sleep 5; done']
       containers:
       - name: backend
-        image: image-registry.openshift-image-registry.svc:5000/observaai/observaai-backend:latest
+        image: image-registry.openshift-image-registry.svc:5000/kallepelli-rupesh-dev/observaai-backend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8000

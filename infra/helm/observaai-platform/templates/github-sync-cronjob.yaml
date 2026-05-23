@@ -11,7 +11,7 @@ spec:
           restartPolicy: Never
           containers:
           - name: github-sync
-            image: image-registry.openshift-image-registry.svc:5000/observaai/observaai-backend:latest
+            image: image-registry.openshift-image-registry.svc:5000/kallepelli-rupesh-dev/observaai-backend:latest
             command: ["python","scripts/bootstrap_memory.py"]
             envFrom:
             - configMapRef:

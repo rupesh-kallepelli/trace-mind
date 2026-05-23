@@ -1,10 +1,10 @@
-namespace: observaai
+namespace: kallepelli-rupesh-dev
 
 backend:
-  image: image-registry.openshift-image-registry.svc:5000/observaai/observaai-backend:latest
+  image: image-registry.openshift-image-registry.svc:5000/kallepelli-rupesh-dev/observaai-backend:latest
 
 frontend:
-  image: image-registry.openshift-image-registry.svc:5000/observaai/observaai-frontend:latest
+  image: image-registry.openshift-image-registry.svc:5000/kallepelli-rupesh-dev/observaai-frontend:latest
 
 postgres:
   image: pgvector/pgvector:pg16

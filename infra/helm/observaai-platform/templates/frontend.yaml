@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: image-registry.openshift-image-registry.svc:5000/observaai/observaai-frontend:latest
+        image: image-registry.openshift-image-registry.svc:5000/kallepelli-rupesh-dev/observaai-frontend:latest
         ports:
         - containerPort: 3000
         readinessProbe:
