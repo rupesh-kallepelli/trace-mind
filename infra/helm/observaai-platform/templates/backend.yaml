@@ -35,6 +35,13 @@ spec:
         app: observaai-backend
     spec:
       serviceAccountName: observaai-sa
+      # initContainers:
+      # - name: wait-for-postgres
+      #   image: busybox
+      #   command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 5; done']
+      # - name: wait-for-opensearch
+      #   image: busybox
+      #   command: ['sh', '-c', 'until nc -z opensearch 9200; do echo waiting for opensearch; sleep 5; done']
       containers:
       - name: backend
         image: image-registry.openshift-image-registry.svc:5000/kallepelli-rupesh-dev/observaai-backend:latest
