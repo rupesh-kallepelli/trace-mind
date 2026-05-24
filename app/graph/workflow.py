@@ -3,7 +3,7 @@ from app.graph.state import AgentState
 
 from app.observability.log_service import LogService
 from app.jira.jira_service import JiraService
-from app.k8s.k8s_service import KubernetesService
+# from app.k8s.k8s_service import KubernetesService
 from app.memory.vector_memory import VectorMemory
 from app.services.dependency_service import DependencyService
 from app.services.deployment_service import DeploymentRiskService
