@@ -17,8 +17,16 @@ jobs:
       - name: Install OpenShift CLI
         run: |
           curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
-          tar -xvf oc.tar.gz
-          sudo mv oc /usr/local/bin/
+
+          tar -xzf oc.tar.gz
+
+          chmod +x oc kubectl
+
+          mkdir -p $HOME/bin
+
+          mv oc kubectl $HOME/bin/
+
+          echo "$HOME/bin" >> $GITHUB_PATH
 
       - name: Login OpenShift
         run: |
