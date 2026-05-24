@@ -1,34 +1,43 @@
-# from kubernetes import client, config
-# from kubernetes.config.config_exception import ConfigException
+from kubernetes import client
+
+configuration = client.Configuration()
+
+configuration.host = "https://kubernetes.default.svc"
+
+with open("/app/k8s-auth/token") as f:
+    token = f.read()
+
+configuration.api_key = {
+    "authorization": token
+}
+
+configuration.api_key_prefix = {
+    "authorization": "Bearer"
+}
+
+configuration.ssl_ca_cert = "/app/k8s-auth/ca.crt"
+
+client.Configuration.set_default(configuration)
+
+v1 = client.CoreV1Api()
 
 
-# class KubernetesService:
+class KubernetesService:
 
-#     def __init__(self):
+    @staticmethod
+    def cluster_analysis():
 
-#         try:
-#             config.load_incluster_config()
-#             print("Using in-cluster config")
+        pods = v1.list_pod_for_all_namespaces()
 
-#         except ConfigException:
-#             config.load_kube_config()
-#             print("Using local kubeconfig")
+        results = []
 
-#         self.v1 = client.CoreV1Api()
+        for pod in pods.items:
 
-#     def cluster_analysis(self):
+            if pod.status.phase != "Running":
 
-#         pods = self.v1.list_pod_for_all_namespaces()
+                results.append({
+                    "pod": pod.metadata.name,
+                    "status": pod.status.phase
+                })
 
-#         results = []
-
-#         for pod in pods.items:
-
-#             if pod.status.phase != "Running":
-
-#                 results.append({
-#                     "pod": pod.metadata.name,
-#                     "status": pod.status.phase
-#                 })
-
-#         return results
+        return results

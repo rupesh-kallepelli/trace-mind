@@ -3,7 +3,7 @@ from app.graph.state import AgentState
 
 from app.observability.log_service import LogService
 from app.jira.jira_service import JiraService
-# from app.k8s.k8s_service import KubernetesService
+from app.k8s.k8s_service import KubernetesService
 from app.memory.vector_memory import VectorMemory
 from app.services.dependency_service import DependencyService
 from app.services.deployment_service import DeploymentRiskService
@@ -26,11 +26,11 @@ def jira_node(state):
         "jira_context": JiraService.fetch_incidents()
     }
 
-# def k8s_node(state):
+def k8s_node(state):
 
-#     return {
-#         "k8s_context": KubernetesService.cluster_analysis()
-#     }
+    return {
+        "k8s_context": KubernetesService.cluster_analysis()
+    }
 
 def memory_node(state):
 
@@ -81,7 +81,7 @@ def rca_node(state):
 
 workflow.add_node("logs_node", logs_node)
 workflow.add_node("jira_node", jira_node)
-# workflow.add_node("k8s_node", k8s_node)
+workflow.add_node("k8s_node", k8s_node)
 workflow.add_node("memory_node", memory_node)
 workflow.add_node("dependency_node", dependency_node)
 workflow.add_node("deployment_node", deployment_node)
@@ -91,9 +91,8 @@ workflow.add_node("rca_node", rca_node)
 workflow.set_entry_point("logs_node")
 
 workflow.add_edge("logs_node", "jira_node")
-# workflow.add_edge("jira_node", "k8s_node")
-workflow.add_edge("jira_node", "memory_node")
-# workflow.add_edge("k8s_node", "memory_node")
+workflow.add_edge("jira_node", "k8s_node")
+workflow.add_edge("k8s_node", "memory_node")
 workflow.add_edge("memory_node", "dependency_node")
 workflow.add_edge("dependency_node", "deployment_node")
 workflow.add_edge("deployment_node", "timeline_node")
