@@ -53,7 +53,7 @@ jobs:
             --insecure-skip-tls-verify=true
 
           oc projects
-          
+
       - name: Trigger Backend Build
         run: |
           oc start-build observaai-backend             --from-dir=.             --follow             -n ${{ secrets.OPENSHIFT_NAMESPACE }}
