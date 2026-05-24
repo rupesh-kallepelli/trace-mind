@@ -42,10 +42,18 @@ jobs:
 
           oc version
 
-      - name: Login OpenShift
+      - name: Login to OpenShift
         run: |
-          oc login ${{ secrets.OPENSHIFT_API }}             --token=${{ secrets.OPENSHIFT_TOKEN }}             --insecure-skip-tls-verify=true
+          mkdir -p $(pwd)/.kube
 
+          export KUBECONFIG=$(pwd)/.kube/config
+
+          oc login ${{ secrets.OPENSHIFT_SERVER }} \
+            --token=${{ secrets.OPENSHIFT_TOKEN }} \
+            --insecure-skip-tls-verify=true
+
+          oc projects
+          
       - name: Trigger Backend Build
         run: |
           oc start-build observaai-backend             --from-dir=.             --follow             -n ${{ secrets.OPENSHIFT_NAMESPACE }}
