@@ -1,0 +1,71 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: github-runner
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: github-runner
+spec:
+  source:
+    type: Dockerfile
+    dockerfile: |
+      FROM ubuntu:22.04
+
+      ENV DEBIAN_FRONTEND=noninteractive
+
+      RUN apt-get update && apt-get install -y \
+          curl \
+          jq \
+          git \
+          unzip \
+          sudo \
+          ca-certificates \
+          && rm -rf /var/lib/apt/lists/*
+
+      RUN useradd -m runner
+
+      WORKDIR /home/runner
+
+      RUN curl -o actions-runner-linux-x64-2.317.0.tar.gz -L \
+          https://github.com/actions/runner/releases/download/v2.317.0/actions-runner-linux-x64-2.317.0.tar.gz
+
+      RUN tar xzf actions-runner-linux-x64-2.317.0.tar.gz
+
+      RUN echo '#!/bin/bash' > /home/runner/start.sh && \
+          echo 'set -e' >> /home/runner/start.sh && \
+          echo '' >> /home/runner/start.sh && \
+          echo 'cleanup() {' >> /home/runner/start.sh && \
+          echo '  echo \"Removing runner...\"' >> /home/runner/start.sh && \
+          echo '  ./config.sh remove --unattended --token ${GITHUB_TOKEN}' >> /home/runner/start.sh && \
+          echo '}' >> /home/runner/start.sh && \
+          echo '' >> /home/runner/start.sh && \
+          echo \"trap 'cleanup; exit 130' INT\" >> /home/runner/start.sh && \
+          echo \"trap 'cleanup; exit 143' TERM\" >> /home/runner/start.sh && \
+          echo '' >> /home/runner/start.sh && \
+          echo './config.sh \\' >> /home/runner/start.sh && \
+          echo '  --url ${GITHUB_REPO_URL} \\' >> /home/runner/start.sh && \
+          echo '  --token ${GITHUB_TOKEN} \\' >> /home/runner/start.sh && \
+          echo '  --name openshift-runner \\' >> /home/runner/start.sh && \
+          echo '  --work _work \\' >> /home/runner/start.sh && \
+          echo '  --unattended \\' >> /home/runner/start.sh && \
+          echo '  --replace' >> /home/runner/start.sh && \
+          echo '' >> /home/runner/start.sh && \
+          echo './run.sh' >> /home/runner/start.sh
+
+      RUN chmod +x /home/runner/start.sh && \
+          chmod -R 777 /home/runner
+
+      WORKDIR /home/runner
+
+      ENTRYPOINT ["/home/runner/start.sh"]
+
+  strategy:
+    type: Docker
+    dockerStrategy: {}
+
+  output:
+    to:
+      kind: ImageStreamTag
+      name: github-runner:latest
