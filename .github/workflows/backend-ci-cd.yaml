@@ -36,11 +36,11 @@ jobs:
 
           chmod +x oc kubectl
 
-          mkdir -p $HOME/bin
+          export PATH=$PATH:$(pwd)
 
-          mv oc kubectl $HOME/bin/
+          echo "$(pwd)" >> $GITHUB_PATH
 
-          echo "$HOME/bin" >> $GITHUB_PATH
+          oc version
 
       - name: Login OpenShift
         run: |
