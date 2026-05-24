@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "app/**"
-      - "requirements.txt"
-      - "Dockerfile"
+      - 'app/**'
+      - 'requirements.txt'
+      - 'Dockerfile'
 
 jobs:
   backend-build:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Install Dependencies
         run: |
@@ -31,28 +31,12 @@ jobs:
       - name: Install OpenShift CLI
         run: |
           curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
+          tar -xvf oc.tar.gz
+          sudo mv oc /usr/local/bin/
 
-          tar -xzf oc.tar.gz
-
-          chmod +x oc kubectl
-
-          export PATH=$PATH:$(pwd)
-
-          echo "$(pwd)" >> $GITHUB_PATH
-
-          oc version
-
-      - name: Login to OpenShift
+      - name: Login OpenShift
         run: |
-          mkdir -p $(pwd)/.kube
-
-          export KUBECONFIG=$(pwd)/.kube/config
-
-          oc login ${{ secrets.OPENSHIFT_SERVER }} \
-            --token=${{ secrets.OPENSHIFT_TOKEN }} \
-            --insecure-skip-tls-verify=true
-
-          oc projects
+          oc login ${{ secrets.OPENSHIFT_API }}             --token=${{ secrets.OPENSHIFT_TOKEN }}             --insecure-skip-tls-verify=true
 
       - name: Trigger Backend Build
         run: |
