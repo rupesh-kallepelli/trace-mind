@@ -7,15 +7,11 @@ class KubernetesService:
     def __init__(self):
 
         try:
-
             config.load_incluster_config()
-
             print("Using in-cluster config")
 
         except ConfigException:
-
             config.load_kube_config()
-
             print("Using local kubeconfig")
 
         self.v1 = client.CoreV1Api()
