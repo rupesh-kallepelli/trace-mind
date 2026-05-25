@@ -40,7 +40,7 @@ jobs:
 
       - name: Trigger Frontend Build
         run: |
-          oc start-build observaai-frontend             --from-dir=frontend             --follow             -n ${{ secrets.OPENSHIFT_NAMESPACE }}
+          oc start-build observaai-frontend             --from-dir=.             --follow             -n ${{ secrets.OPENSHIFT_NAMESPACE }}
 
       - name: Rollout Frontend
         run: |
