@@ -1,8 +1,7 @@
-from langchain_google_vertexai import VertexAIEmbeddings
-from app.core.config import settings
+from app.ai.providers.embeddings.embedding_factory import (
+    EmbeddingFactory
+)
 
-embedding_model = VertexAIEmbeddings(
-    model_name="textembedding-gecko@003",
-    project=settings.GOOGLE_CLOUD_PROJECT_ID,
-    location=settings.GOOGLE_CLOUD_LOCATION
+embedding_model = (
+    EmbeddingFactory.get_provider()
 )

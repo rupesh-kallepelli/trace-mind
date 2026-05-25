@@ -2,7 +2,7 @@ from langchain_google_vertexai import ChatVertexAI
 from app.core.config import settings
 
 llm = ChatVertexAI(
-    model=settings.GEMINI_MODEL_NAME,
+    model=settings.VERTEX_MODEL,
     project=settings.GOOGLE_CLOUD_PROJECT_ID,
     location=settings.GOOGLE_CLOUD_LOCATION,
     temperature=0

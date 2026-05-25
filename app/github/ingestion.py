@@ -38,7 +38,7 @@ class GitHubIngestionService:
 
                 for chunk in chunks:
 
-                    embedding = embedding_model.embed_query(chunk)
+                    embedding = embedding_model.embed(chunk)
 
                     query = text(
                         '''

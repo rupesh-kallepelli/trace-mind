@@ -1,48 +1,82 @@
-from sqlalchemy import text
-from app.db.database import engine
-from app.memory.embeddings import embedding_model
+# from sqlalchemy import text
+# from app.db.database import engine
+# from app.memory.embeddings import embedding_model
+
+# class VectorMemory:
+
+#     @staticmethod
+#     def store_incident(issue, root_cause, fix):
+
+#         embedding = embedding_model.embed(issue)
+
+#         query = text(
+#             '''
+#             INSERT INTO incident_memory
+#             (issue, root_cause, fix, embedding)
+#             VALUES
+#             (:issue, :root_cause, :fix, :embedding)
+#             '''
+#         )
+
+#         with engine.begin() as conn:
+#             conn.execute(query, {
+#                 "issue": issue,
+#                 "root_cause": root_cause,
+#                 "fix": fix,
+#                 "embedding": embedding
+#             })
+
+#     @staticmethod
+#     def search_similar(issue):
+
+#         embedding = embedding_model.embed(issue)
+
+#         query = text(
+#             '''
+#             SELECT issue, root_cause, fix
+#             FROM incident_memory
+#             ORDER BY embedding <-> :embedding
+#             LIMIT 5
+#             '''
+#         )
+
+#         with engine.begin() as conn:
+#             rows = conn.execute(query, {
+#                 "embedding": embedding
+#             }).fetchall()
+
+#         return [dict(row._mapping) for row in rows]
+
+from app.core.config import settings
+
 
 class VectorMemory:
 
     @staticmethod
-    def store_incident(issue, root_cause, fix):
+    def search_similar(issue: str):
 
-        embedding = embedding_model.embed_query(issue)
+        ##################################################################
+        # EMBEDDINGS DISABLED
+        ##################################################################
 
-        query = text(
-            '''
-            INSERT INTO incident_memory
-            (issue, root_cause, fix, embedding)
-            VALUES
-            (:issue, :root_cause, :fix, :embedding)
-            '''
-        )
+        if not settings.ENABLE_EMBEDDINGS:
 
-        with engine.begin() as conn:
-            conn.execute(query, {
-                "issue": issue,
-                "root_cause": root_cause,
-                "fix": fix,
-                "embedding": embedding
-            })
+            return [
+                {
+                    "incident": (
+                        "Previous incident with "
+                        "similar pod failure"
+                    ),
 
-    @staticmethod
-    def search_similar(issue):
+                    "resolution": (
+                        "Restart deployment and "
+                        "increase memory allocation"
+                    )
+                }
+            ]
 
-        embedding = embedding_model.embed_query(issue)
+        ##################################################################
+        # FUTURE REAL VECTOR SEARCH
+        ##################################################################
 
-        query = text(
-            '''
-            SELECT issue, root_cause, fix
-            FROM incident_memory
-            ORDER BY embedding <-> :embedding
-            LIMIT 5
-            '''
-        )
-
-        with engine.begin() as conn:
-            rows = conn.execute(query, {
-                "embedding": embedding
-            }).fetchall()
-
-        return [dict(row._mapping) for row in rows]
+        return []
