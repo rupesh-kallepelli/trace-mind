@@ -9,10 +9,9 @@ COPY . .
 RUN npm run build
 
 
-# ---- NGINX STAGE ----
 FROM nginx:stable-alpine
 
-# ✅ Create required temp directories
+# ✅ Create all required dirs + fix permissions (OpenShift friendly)
 RUN mkdir -p \
     /var/cache/nginx/client_temp \
     /var/cache/nginx/proxy_temp \
@@ -20,16 +19,16 @@ RUN mkdir -p \
     /var/cache/nginx/uwsgi_temp \
     /var/cache/nginx/scgi_temp \
     /var/run \
-    && chmod -R g+rwX /var/cache/nginx /var/run \
-    && chgrp -R 0 /var/cache/nginx /var/run
+    && chgrp -R 0 /var/cache/nginx /var/run \
+    && chmod -R g+rwX /var/cache/nginx /var/run
 
-# ✅ Copy app
+# ✅ Copy built app
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# ✅ Keep your existing config (no change)
+# ✅ keep your existing config unchanged
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 3000
 
-# ✅ Override PID path at runtime (NO config change)
-CMD ["nginx", "-g", "pid /var/run/nginx.pid; daemon off;"]
+# ✅ NO pid override anymore
+CMD ["nginx", "-g", "daemon off;"]
