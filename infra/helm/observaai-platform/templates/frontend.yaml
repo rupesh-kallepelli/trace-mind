@@ -1,3 +1,25 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: observaai-backend
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: observaai-backend
+
+spec:
+  source:
+    type: Binary
+
+  strategy:
+    type: Docker
+
+  output:
+    to:
+      kind: ImageStreamTag
+      name: observaai-backend:latest
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
